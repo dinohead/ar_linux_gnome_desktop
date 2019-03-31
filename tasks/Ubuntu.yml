@@ -1,0 +1,51 @@
+---
+# task file to install/update/configure ntp on Debian based systems
+
+- name: APT | Install Gnome Desktop
+  become: true
+  become_user: root
+  vars:
+    ansible_python_interpreter: /usr/bin/python
+  apt:
+    update_cache: true
+    name: "{{ linux_gnome_desktop_ubuntu_packages }}"
+    state: latest
+  register: linux_gnome_desktop_installed
+
+- name: SHELL | Get the current systemd target
+  shell: "/sbin/runlevel | awk '{ printf $2 }'"
+  register: task_result
+  changed_when: false
+
+- name: SHELL | Set current systemd target to graphical
+  become: true
+  become_user: root
+  shell: "systemctl isolate graphical.target"
+  when: task_result.stdout != '5'
+
+- name: SHELL | Get the default systemd target
+  shell: "systemctl get-default"
+  register: task_result
+  changed_when: false
+
+- name: SHELL | Set default systemd target to graphical
+  become: true
+  become_user: root
+  shell: "{{ item }}"
+  with_items:
+  - "systemctl enable graphical.target"
+  - "systemctl set-default graphical.target"
+  when: task_result.stdout != 'graphical.target'
+
+- name: SHELL | reboot the system if Gnome Desktop was installed
+  become: true
+  become_user: root
+  shell: sleep 2 && shutdown -r now "Gnome Desktop"
+  async: 1
+  poll: 0
+  when: linux_gnome_desktop_installed.changed
+
+- name: WAIT_FOR_CONNECTION | Do what it says
+  wait_for_connection:
+    delay: 30
+  when: linux_gnome_desktop_installed.changed
