@@ -1,0 +1,16 @@
+---
+# ========================
+# File tasks/main.yml
+#
+# ========================
+
+- name: Install Gnome -> {{ ansible_distribution }}
+  include: "{{ ansible_distribution }}.yml"
+
+- name: TEMPLATE | Template file to stop the annoying 'Color Managed Device' prompt
+  become: true
+  become_user: root
+  template:
+    src: j2.45-allow-colord.pkla
+    dest: /etc/polkit-1/localauthority/50-local.d/45-allow-colord.pkla
+

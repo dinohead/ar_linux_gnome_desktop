@@ -1,0 +1,13 @@
+---
+# defaults file for role_template
+
+linux_gnome_desktop_ubuntu_packages:
+  - "gnome-session"
+
+linux_gnome_desktop_centos_packages:
+  - "@^GNOME Desktop"
+  - "@Graphical Administration Tools"
+
+linux_gnome_desktop_redhat_packages:
+  - "@^Server with GUI"
+

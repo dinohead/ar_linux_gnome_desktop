@@ -1,0 +1,43 @@
+---
+###############################################################################
+# File: role_name/tasks/main.yml
+#
+# Description: define tasks for this role
+###############################################################################
+
+- name: YUM | Install Gnome Desktop
+  become: true
+  become_user: root
+  vars:
+    ansible_python_interpreter: /usr/bin/python
+  yum:
+    name: "{{ linux_gnome_desktop_redhat_packages }}"
+    state: present
+    update_cache: yes
+    skip_broken: yes
+  register: task_result_1
+
+- name: SHELL | Get the current systemd target
+  shell: "/sbin/runlevel | awk '{ printf $2 }'"
+  register: task_result
+  changed_when: false
+
+- name: SHELL | Set current systemd target to graphical
+  become: true
+  become_user: root
+  shell: "systemctl isolate graphical.target"
+  when: task_result.stdout != '5'
+
+- name: SHELL | Get the default systemd target
+  shell: "systemctl get-default"
+  register: task_result
+  changed_when: false
+
+- name: SHELL | Set default systemd target to graphical
+  become: true
+  become_user: root
+  shell: "{{ item }}"
+  with_items:
+    - "systemctl enable graphical.target"
+    - "systemctl set-default graphical.target"
+  when: task_result.stdout != 'graphical.target'
