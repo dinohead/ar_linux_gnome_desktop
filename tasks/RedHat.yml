@@ -5,17 +5,41 @@
 # Description: define tasks for this role
 ###############################################################################
 
-- name: YUM | Install Gnome Desktop
+- name: YUM | Install Gnome Desktop on 7
   become: true
   become_user: root
-  vars:
-    ansible_python_interpreter: /usr/bin/python
   yum:
     name: "{{ linux_gnome_desktop_redhat_packages }}"
-    state: present
-    update_cache: yes
-    skip_broken: yes
+    state: latest
+    update_cache: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python
+  when:
+    - "ansible_distribution_major_version | int <= 7"
   register: task_result_1
+
+- name: YUM | Install Gnome Desktop on 8
+  become: true
+  become_user: root
+  yum:
+    name: "{{ linux_gnome_desktop_redhat_packages }}"
+    state: latest
+    update_cache: true
+  when:
+    - "ansible_distribution_major_version | int > 7"
+  register: task_result_1
+
+- name: YUM | Why do they install Podman on 8?
+  become: true
+  become_user: root
+  yum:
+    state: absent
+    name:
+      - podman
+      - containers-common
+    update_cache: true
+  when:
+    - "ansible_distribution_major_version | int > 7 and task_result_1.changed"
 
 - name: SHELL | Get the current systemd target
   shell: "/sbin/runlevel | awk '{ printf $2 }'"
