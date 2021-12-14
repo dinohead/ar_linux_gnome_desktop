@@ -37,6 +37,7 @@
     name:
       - podman
       - containers-common
+      - containerd.io
     update_cache: true
   when:
     - "ansible_distribution_major_version | int > 7 and task_result_1.changed"
